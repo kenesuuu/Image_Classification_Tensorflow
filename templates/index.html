@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Classification App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Image Classification App</h1>
+    
+    {% if result %}
+    <h2>Result</h2>
+    <p>{{ result }}</p>
+    <p>Is the classification correct?</p>
+    <button onclick="showMessage()">Yes</button>
+    <button onclick="updateLabel()">No</button>
+    <p>Upload another picture? <a href="/">Click here</a></p>
+    <img src="{{ uploaded_image }}" alt="Uploaded Image" width="300">
+    {% else %}
+    <form action="/" method="post" enctype="multipart/form-data">
+        <label for="file">Select an image:</label>
+        <input type="file" id="file" name="file" accept="image/*">
+        <br><br>
+        <input type="submit" value="Upload and Classify" onclick="validateUpload()">
+    </form>
+    {% endif %}
+
+    <script>
+        function showMessage() {
+            alert("Classification is correct.");
+        }
+
+        function updateLabel() {
+            var newLabel = prompt("Please provide the correct label:");
+            if (newLabel !== null && newLabel !== "") {
+                // Send AJAX request to update label
+                var filename = "{{ uploaded_image }}".split('/').pop();
+                var data = { filename: filename, new_label: newLabel };
+                fetch('/update_label', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        }
+
+        function validateUpload() {
+            var fileInput = document.getElementById('file');
+            if (!fileInput.files || !fileInput.files[0]) {
+                alert("You should upload the picture first");
+                event.preventDefault(); // Prevent form submission
+            }
+        }
+    </script>
+</body>
+</html>
